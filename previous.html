@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Previous Visitors</title>
+
+    <link rel="stylesheet" href="../style.css">
+</head>
+
+<body>
+
+<div class="table-container">
+
+    <h1>Previous Visitor Records</h1>
+
+    <table id="visitorTable">
+
+        <thead>
+
+            <tr>
+
+                <th>S.No</th>
+                <th>Visitor Name</th>
+                <th>Mobile Number</th>
+                <th>Company</th>
+                <th>Verified By</th>
+                <th>Purpose</th>
+                <th>Date</th>
+                <th>Time</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+        </tbody>
+
+    </table>
+
+</div>
+
+<script>
+
+fetch("http://localhost:5000/getVisitors")
+
+.then(res=>res.json())
+
+.then(data=>{
+
+const tbody=document.querySelector("#visitorTable tbody");
+
+tbody.innerHTML="";
+
+data.forEach((visitor,index)=>{
+
+tbody.innerHTML+=`
+
+<tr>
+
+<td>${index+1}</td>
+
+<td>${visitor.visitorName}</td>
+
+<td>${visitor.mobile}</td>
+
+<td>${visitor.company}</td>
+
+<td>${visitor.verifiedBy}</td>
+
+<td>${visitor.purpose}</td>
+
+<td>${visitor.date}</td>
+
+<td>${visitor.time}</td>
+
+</tr>
+
+`;
+
+});
+
+})
+
+.catch(err=>console.log(err));
+
+</script>
+
+</body>
+
+</html>
