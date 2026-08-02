@@ -15,12 +15,19 @@
 
     <h1>Previous Visitor Records</h1>
 
+<div class="top-controls">
+
+    <div class="search-box">
+        <span>🔍</span>
+        <input type="text" id="searchInput" placeholder="Search...">
+    </div>
+    <input type="date" id="dateFilter">
+</div>
+
+<table id="visitorTable">
     <table id="visitorTable">
-
         <thead>
-
             <tr>
-
                 <th>S.No</th>
                 <th>Visitor Name</th>
                 <th>Mobile Number</th>
@@ -29,65 +36,67 @@
                 <th>Purpose</th>
                 <th>Date</th>
                 <th>Time</th>
-
             </tr>
-
         </thead>
-
         <tbody>
-
         </tbody>
-
     </table>
-
 </div>
-
 <script>
+let visitors = [];
 
+// Fetch data from backend
 fetch("http://localhost:5000/getVisitors")
+.then(res => res.json())
+.then(data => {
 
-.then(res=>res.json())
-
-.then(data=>{
-
-const tbody=document.querySelector("#visitorTable tbody");
-
-tbody.innerHTML="";
-
-data.forEach((visitor,index)=>{
-
-tbody.innerHTML+=`
-
-<tr>
-
-<td>${index+1}</td>
-
-<td>${visitor.visitorName}</td>
-
-<td>${visitor.mobile}</td>
-
-<td>${visitor.company}</td>
-
-<td>${visitor.verifiedBy}</td>
-
-<td>${visitor.purpose}</td>
-
-<td>${visitor.date}</td>
-
-<td>${visitor.time}</td>
-
-</tr>
-
-`;
-
-});
-
+    visitors = data;
+    displayVisitors(visitors);
 })
+.catch(err => console.log(err));
+// Function to display visitors
+function displayVisitors(data){
+    const tbody = document.querySelector("#visitorTable tbody");
+    tbody.innerHTML = "";
+    data.forEach((visitor,index)=>{
+        tbody.innerHTML += `
+        <tr>
+            <td>${index+1}</td>
+            <td>${visitor.visitorName}</td>
+            <td>${visitor.mobile}</td>
+            <td>${visitor.company}</td>
+            <td>${visitor.verifiedBy}</td>
+            <td>${visitor.purpose}</td>
+            <td>${visitor.date}</td>
+            <td>${visitor.time}</td>
+        </tr>
+        `;
+    });
+}
+// Search Event
+document.getElementById("searchInput").addEventListener("keyup", filterVisitors);
+// Date Filter Event
+document.getElementById("dateFilter").addEventListener("change", filterVisitors);
+// Filter Function
+function filterVisitors(){
+    const search = document.getElementById("searchInput").value.toLowerCase();
+    const date = document.getElementById("dateFilter").value;
+    const filtered = visitors.filter(visitor=>{
 
-.catch(err=>console.log(err));
+        const matchesSearch =
+            visitor.visitorName.toLowerCase().includes(search) ||
+            visitor.mobile.toString().includes(search) ||
+            visitor.company.toLowerCase().includes(search) ||
+            visitor.verifiedBy.toLowerCase().includes(search) ||
+            visitor.purpose.toLowerCase().includes(search);
 
+        const matchesDate =
+
+            date === "" || visitor.date === date;
+        return matchesSearch && matchesDate;
+    });
+    displayVisitors(filtered);
+}
 </script>
-
 </body>
-
 </html>
