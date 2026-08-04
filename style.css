@@ -1,270 +1,175 @@
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family:Segoe UI, sans-serif;
-}
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
 
-body{
-    background:#eef4fb;
-}
+const app = express();
 
-.container{
-    width:100%;
-    display:flex;
-    justify-content:center;
-    padding:40px;
-}
+// Middleware
+app.use(cors());
+app.use(express.json());
 
-.form-container{
-    width:70%;
-    background:#fff;
-    padding:40px;
-    border-radius:12px;
-    box-shadow:0 10px 25px rgba(0,0,0,0.15);
-    overflow-x:auto;
-}
+// MongoDB Connection
+mongoose.connect("mongodb://127.0.0.1:27017/VisitorPassDB")
+.then(() => {
+    console.log("✅ MongoDB Connected");
+})
+.catch((err) => {
+    console.error("❌ MongoDB Connection Error:", err);
+});
 
-h1{
-    color:#0B4F8C;
-    margin-bottom:30px;
-    text-align:center;
-}
+// Schema
+const visitorSchema = new mongoose.Schema({
+    visitorName: String,
+    mobile: String,
+    company: String,
+    receiver: String,
+    purpose: String,
 
-label{
-    display:block;
-    margin-top:18px;
-    margin-bottom:8px;
-    font-weight:600;
-}
+    inchargeDC: {
+        type: String,
+        default: ""
+    },
 
-input,
-select,
-textarea{
-    width:100%;
-    padding:12px;
-    border:1px solid #cfcfcf;
-    border-radius:8px;
-    font-size:15px;
-}
+    approvalStatus: {
+        type: String,
+        default: "Pending"
+    },
+    approvalStatus: {
+    type: String,
+    default: "Pending"
+},
 
-input:focus,
-select:focus,
-textarea:focus{
-    outline:none;
-    border:1px solid #0B4F8C;
-}
+approvedBy: {
+    type: String,
+    default: ""
+},
 
-textarea{
-    resize:none;
-    height:100px;
-}
+date: String,
+time: String
+});
 
-.row{
-    display:flex;
-    gap:20px;
-    margin-top:10px;
-}
+// Model
+const Visitor = mongoose.model("Visitor", visitorSchema);
 
-.column{
-    width:50%;
-}
+// Test Route
+app.get("/", (req, res) => {
+    res.send("Visitor Pass Backend Running");
+});
 
-.saveBtn{
-    width:100%;
-    margin-top:35px;
-    padding:15px;
-    border:none;
-    border-radius:8px;
-    background:#28a745;
-    color:white;
-    font-size:18px;
-    cursor:pointer;
-    transition:.3s;
-}
+// Save Visitor API
+app.post("/saveVisitor", async (req, res) => {
 
-.saveBtn:hover{
-    background:#218838;
-}
+    console.log("REQUEST RECEIVED");
+    console.log(req.body);
 
-.home-card{
-    width:500px;
-    background:#fff;
-    padding:50px;
-    border-radius:15px;
-    text-align:center;
-    box-shadow:0 10px 25px rgba(0,0,0,0.15);
-    margin:80px auto;
-}
+    try {
 
-.home-card h1{
-    color:#0B4F8C;
-    margin-bottom:15px;
-}
+        const visitor = new Visitor(req.body);
 
-.home-card p{
-    color:#555;
-    margin-bottom:30px;
-    font-size:18px;
-}
+        await visitor.save();
 
-.home-btn{
-    display:block;
-    width:100%;
-    text-decoration:none;
-    padding:15px;
-    margin:15px 0;
-    border-radius:8px;
-    color:white;
-    font-size:18px;
-    font-weight:bold;
-    transition:.3s;
-    text-align:center;
-}
+        console.log("DATA SAVED");
 
-.new{
-    background:#28a745;
-}
+        res.json({
+            success: true,
+            message: "Saved Successfully"
+        });
 
-.new:hover{
-    background:#218838;
-}
+    } catch (err) {
 
-.view{
-    background:#007bff;
-    color:white;
-}
+        console.log(err);
 
-.view:hover{
-    background:#0056b3;
-}
-   */Previous Visitors Page*/
+        res.status(500).json({
+            success: false,
+            message: err.message
+        });
 
-.table-container{
-    width:98%;
-    margin:20px auto;
-    background:#fff;
-    padding:20px;
-    border-radius:8px;
-    box-shadow:0 2px 8px rgba(0,0,0,.08);
-    overflow-x:auto;
-}
+    }
+});
 
-table{
-    width:100%;
-    border-collapse:collapse;
-    table-layout:fixed;
-}
+app.put("/approveVisitor/:id", async (req, res) => {
 
-th,
-td{
-    padding:12px;
-    border-bottom:1px solid #ddd;
-    text-align:center;    
-    vertical-align:middle; 
-}
+    try {
 
-/* S.No */
-th:nth-child(1),
-td:nth-child(1){
-    width:50px;
-    text-align:center;
-}
+        const visitor = await Visitor.findById(req.params.id);
 
-/* Visitor Name */
-th:nth-child(2),
-td:nth-child(2){
-    width:140px;
-}
+        if (!visitor.inchargeDC || visitor.inchargeDC === "") {
+            return res.json({
+                success: false,
+                message: "Please select Incharge-DC before approval."
+            });
+        }
 
-th:nth-child(3),
-td:nth-child(3){
-    width:130px;
-}
+        visitor.approvalStatus = "Approved";
 
-th:nth-child(4),
-td:nth-child(4){
-    width:140px;
-}
+        await Visitor.findByIdAndUpdate(
+            req.params.id,
+            {
+                approvalStatus: "Approved",
+                approvedBy: req.body.approvedBy
+            }
+        );
 
-th:nth-child(5),
-td:nth-child(5){
-    width:120px;
-}
+    } catch (err) {
 
-th:nth-child(6),
-td:nth-child(6){
-    width:250px;
-    text-align:center;
-    vertical-align:middle;
-    word-wrap:break-word;
-    overflow-wrap:break-word;
-    white-space:normal;
-}
+        res.status(500).json({
+            success: false,
+            message: err.message
+        });
 
-th:nth-child(7),
-td:nth-child(7){
-    width:100px;
-    text-align:center;
-}
+    }
 
-th:nth-child(8),
-td:nth-child(8){
-    width:80px;
-    text-align:center;
-}
-/* Top Right Controls */
+});
 
-.table-container{
-    width:98%;
-    margin:20px auto;
-    background:#fff;
-    padding:20px;
-    border-radius:8px;
-    box-shadow:0 2px 8px rgba(0,0,0,.08);
-    overflow-x:auto;
+app.put("/updateManager/:id", async (req, res) => {
 
-    position:relative;   /* ADD THIS */
-}
-.top-controls{
-    position:absolute;
-    top:20px;
-    right:20px;
+    try {
 
-    display:flex;
-    align-items:center;
-    gap:10px;
-}
-/* Search Box */
-.search-box{
-    display:flex;
-    align-items:center;
-    width:180px;
-    height:40px;
-    border:1px solid #ccc;
-    border-radius:6px;
-    background:#fff;
-    padding:0 10px;
-}
-.search-box span{
-    font-size:18px;
-    margin-right:8px;
-    color:#666;
-}
-.search-box input{
-    border:none;
-    outline:none;
-    width:100%;
-    font-size:15px;
-    padding:0;
-}
-/* Date Filter */
-#dateFilter{
-    width:150px;
-    height:40px;
-    border:1px solid #ccc;
-    border-radius:6px;
-    padding:0 10px;
-    outline:none;
-    font-size:15px;
-}
+        await Visitor.findByIdAndUpdate(
+            req.params.id,
+            {
+                inchargeDC: req.body.inchargeDC
+            }
+        );
+
+        res.json({
+            success: true,
+            message: "Manager Updated"
+        });
+
+    } catch (err) {
+
+        res.status(500).json({
+            success: false,
+            message: err.message
+        });
+
+    }
+
+});
+
+app.get("/getVisitors", async (req, res) => {
+
+    try {
+
+        const visitors = await Visitor.find();
+
+        res.json(visitors);
+
+    } catch (err) {
+
+        res.status(500).json({
+            success: false,
+            message: err.message
+        });
+
+    }
+
+});
+// Start Server
+const PORT = 5000;
+
+app.listen(PORT, () => {
+    console.log(`🚀 Server Running on http://localhost:${PORT}`);
+});
+
