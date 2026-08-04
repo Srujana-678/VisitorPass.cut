@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Head-ITD Approval</title>
+
+    <link rel="stylesheet" href="../style.css">
+</head>
+
+<body>
+
+<div class="table-container">
+
+    <h1>Head-ITD Visitor Approval</h1>
+
+    <table id="visitorTable">
+
+        <thead>
+            <tr>
+                <th>S.No</th>
+                <th>Visitor Name</th>
+                <th>Mobile Number</th>
+                <th>Company</th>
+                <th>Receiver</th>
+                <th>Purpose</th>
+                <th>Incharge-DC</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        </tbody>
+
+    </table>
+
+</div>
+
+<script>
+
+let visitors = [];
+
+let selectedVisitorId = "";
+
+loadVisitors();
+
+function loadVisitors(){
+
+    fetch("http://localhost:5000/getVisitors")
+    .then(res => res.json())
+    .then(data => {
+
+        visitors = data;
+        displayVisitors(visitors);
+
+    })
+    .catch(err => console.log(err));
+
+}
+
+function displayVisitors(data){
+
+    const tbody = document.querySelector("#visitorTable tbody");
+    tbody.innerHTML = "";
+
+    data.forEach((visitor,index)=>{
+
+        tbody.innerHTML += `
+        <tr>
+
+            <td>${index+1}</td>
+            <td>${visitor.visitorName}</td>
+            <td>${visitor.mobile}</td>
+            <td>${visitor.company}</td>
+            <td>${visitor.receiver}</td>
+            <td>${visitor.purpose}</td>
+
+            <td>${visitor.inchargeDC || "-"}</td>
+
+            <td>${visitor.date}</td>
+            <td>${visitor.time}</td>
+
+            <td>
+                ${
+                    visitor.approvalStatus === "Approved"
+                    ? '<span class="approved">Approved</span>'
+                    : '<span class="pending">Pending</span>'
+                }
+            </td>
+
+            <td>
+                ${
+                    visitor.approvalStatus === "Approved"
+                    ? "-"
+                    : `<button class="approveBtn" onclick="openModal('${visitor._id}')">
+                        Approve
+                      </button>`
+                }
+            </td>
+
+        </tr>
+        `;
+
+    });
+
+}
+
+function openModal(id){
+
+    selectedVisitorId = id;
+
+    document.getElementById("approvedByName").value = "";
+
+    document.getElementById("approvalModal").style.display = "flex";
+
+}
+
+function closeModal(){
+
+    document.getElementById("approvalModal").style.display = "none";
+
+}
+
+function confirmApprove(){
+    alert("Approved !");
+
+    const approver = document.getElementById("approvedByName").value.trim();
+
+    if(approver==""){
+
+        alert("Please enter your name.");
+
+        return;
+
+    }
+
+    fetch(`http://localhost:5000/approveVisitor/${selectedVisitorId}`,{
+
+        method:"PUT",
+
+        headers:{
+            "Content-Type":"application/json"
+        },
+
+        body:JSON.stringify({
+
+            approvedBy:approver
+
+        })
+
+    })
+
+    .then(res=>res.json())
+
+    .then(data=>{
+
+        alert("Visitor Approved Successfully");
+
+        closeModal();
+
+        location.reload();
+
+    })
+
+    .catch(err=>console.log(err));
+
+}
+
+</script>
+</script>
+
+<!-- Approval Popup -->
+<div id="approvalModal" class="modal">
+
+    <div class="modal-content">
+
+        <h2>Visitor Approval</h2>
+
+        <label>Approving By</label>
+
+        <input type="text" id="approvedByName" placeholder="Enter Your Name">
+
+        <div class="modal-buttons">
+
+            <button class="cancelBtn" onclick="closeModal()">Cancel</button>
+
+            <button class="approveBtn" onclick="confirmApprove()">Approve</button>
+
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>
+</body>
+
+</html>
