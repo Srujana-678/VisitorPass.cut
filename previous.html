@@ -21,28 +21,43 @@
         <span>🔍</span>
         <input type="text" id="searchInput" placeholder="Search...">
     </div>
-    <input type="date" id="dateFilter">
-</div>
 
+    <input type="date" id="dateFilter">
+
+</div>
+<div class="head-login">
+    <a href="headlogin.html">Login as Head-ITD</a>
+</div>
 <table id="visitorTable">
+
     <table id="visitorTable">
+
         <thead>
             <tr>
                 <th>S.No</th>
                 <th>Visitor Name</th>
                 <th>Mobile Number</th>
                 <th>Company</th>
-                <th>Verified By</th>
+                <th>Receiver</th>
                 <th>Purpose</th>
+                <th>Incharge-DC</th>
                 <th>Date</th>
                 <th>Time</th>
+                <th>Status</th>
             </tr>
+
         </thead>
+
         <tbody>
+
         </tbody>
+
     </table>
+
 </div>
+
 <script>
+
 let visitors = [];
 
 // Fetch data from backend
@@ -52,26 +67,103 @@ fetch("http://localhost:5000/getVisitors")
 
     visitors = data;
     displayVisitors(visitors);
+
 })
 .catch(err => console.log(err));
 // Function to display visitors
 function displayVisitors(data){
+
     const tbody = document.querySelector("#visitorTable tbody");
     tbody.innerHTML = "";
+
     data.forEach((visitor,index)=>{
+
         tbody.innerHTML += `
         <tr>
+
             <td>${index+1}</td>
             <td>${visitor.visitorName}</td>
             <td>${visitor.mobile}</td>
             <td>${visitor.company}</td>
-            <td>${visitor.verifiedBy}</td>
+            <td>${visitor.receiver}</td>
             <td>${visitor.purpose}</td>
+
+            <td>
+                ${
+                    visitor.approvalStatus === "Approved"
+                    ?
+                    `<span>${visitor.inchargeDC || "-"}</span>`
+                    :
+                    `<select onchange="updateManager('${visitor._id}', this.value)">
+                        <option value="">Select Incharge</option>
+
+                        <option value="T.Deepthi"
+                        ${visitor.inchargeDC==="T.Deepthi" ? "selected" : ""}>
+                        T.Deepthi
+                        </option>
+
+                        <option value="A.Bharath Kumar Naik"
+                        ${visitor.inchargeDC==="A.Bharath Kumar Naik" ? "selected" : ""}>
+                        A.Bharath Kumar Naik
+                        </option>
+
+                    </select>`
+                }
+            </td>
+
             <td>${visitor.date}</td>
             <td>${visitor.time}</td>
+
+            <td>
+                ${
+                    visitor.approvalStatus === "Approved"
+                    ?
+                    `<span class="approved">Approved</span>
+                    <br>
+                    <small style="color:green;font-weight:bold;">
+                        by ${visitor.approvedBy}
+                    </small>`
+                    :
+                    `<span class="pending">Pending</span>`
+                }
+            </td>
+
         </tr>
         `;
+
     });
+
+}
+function updateManager(id, manager){
+
+    fetch(`http://localhost:5000/updateManager/${id}`,{
+        method:"PUT",
+        headers:{
+            "Content-Type":"application/json"
+        },
+        body:JSON.stringify({
+            inchargeDC:manager
+        })
+    })
+    .then(res=>res.json())
+    .then(data=>{
+
+        if(data.success){
+            console.log("Manager Updated");
+
+            // Reload latest data from DB
+            fetch("http://localhost:5000/getVisitors")
+            .then(res=>res.json())
+            .then(data=>{
+                visitors = data;
+                displayVisitors(visitors);
+            });
+
+        }
+
+    })
+    .catch(err=>console.log(err));
+
 }
 // Search Event
 document.getElementById("searchInput").addEventListener("keyup", filterVisitors);
@@ -79,20 +171,23 @@ document.getElementById("searchInput").addEventListener("keyup", filterVisitors)
 document.getElementById("dateFilter").addEventListener("change", filterVisitors);
 // Filter Function
 function filterVisitors(){
+
     const search = document.getElementById("searchInput").value.toLowerCase();
     const date = document.getElementById("dateFilter").value;
     const filtered = visitors.filter(visitor=>{
 
         const matchesSearch =
+
             visitor.visitorName.toLowerCase().includes(search) ||
             visitor.mobile.toString().includes(search) ||
             visitor.company.toLowerCase().includes(search) ||
-            visitor.verifiedBy.toLowerCase().includes(search) ||
+            visitor.receiver.toLowerCase().includes(search) ||
             visitor.purpose.toLowerCase().includes(search);
 
         const matchesDate =
 
             date === "" || visitor.date === date;
+
         return matchesSearch && matchesDate;
     });
     displayVisitors(filtered);
