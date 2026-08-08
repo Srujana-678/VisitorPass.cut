@@ -13,60 +13,85 @@
         <form id="visitorForm">
             <label>Visitor Name *</label>
             <input type="text" id="visitorName" placeholder="Enter Visitor Name" required>
+                <label>Mobile Number *</label>
+                <input type="tel"
+                    id="mobile"
+                    placeholder="Enter Mobile Number"
+                    maxlength="10"
+                    pattern="[0-9]{10}"
+                    inputmode="numeric"
+                    onkeypress="return event.charCode >= 48 && event.charCode <= 57"
+                    required>
 
-            <label>Mobile Number *</label>
-            <input type="tel" id="mobile" placeholder="Enter Mobile Number" required>
+                <label>Company / Organization *</label>
+                <input type="text"
+                    id="company"
+                    placeholder="Enter Company Name"
+                    required>
 
-            <label>Company / Organization</label>
-            <input type="text" id="company" placeholder="Enter Company Name">
+                <label>Receiver *</label>
+                <select id="Receiver" required>
+                    <option value="">Select Authority</option>
+                    <option>Sidharth</option>
+                    <option>Naveen Reddy</option>
+                </select>
 
-            <label>Verified By</label>
-            <select id="verifiedBy">
-                <option value="">Select Authority</option>
-                <option>Srujana</option>
-                <option>Sidharth</option>
-                <option>Naveen Reddy</option>
-            </select>
+                <label>Purpose Of Visit *</label>
+                <textarea id="purpose"
+                        placeholder="Enter Purpose"
+                        required></textarea>
 
-            <label>Purpose Of Visit *</label>
-            <textarea id="purpose" placeholder="Enter Purpose"></textarea>
+                <div class="row">
 
-            <div class="row">
+                    <div class="column">
+                        <label>Date *</label>
+                        <input type="date"
+                            id="date"
+                            required>
+                    </div>
 
-                <div class="column">
-                    <label>Date</label>
-                    <input type="date" id="date">
+                    <div class="column">
+                        <label>Time In *</label>
+                        <input type="time"
+                            id="time"
+                            required>
+                    </div>
+
                 </div>
 
-                <div class="column">
-                    <label>Time In</label>
-                    <input type="time" id="time">
-                </div>
-
-            </div>
-
-            <button type="submit" class="saveBtn">
-                Save Visitor
-            </button>
+                <button type="submit" class="saveBtn">
+                    Save Visitor
+                </button>
         </form>
     </div>
 </div>
 <script>
 const today = new Date();
-document.getElementById("date").value =
-today.toISOString().split("T")[0];
+const todayDate = today.toISOString().split("T")[0];
+const dateField = document.getElementById("date");
+// Set today's date by default
+dateField.value = todayDate;
+dateField.max = todayDate;
+
+
 const hours = String(today.getHours()).padStart(2,'0');
 const minutes = String(today.getMinutes()).padStart(2,'0');
 document.getElementById("time").value =
 hours + ":" + minutes;
 document.getElementById("visitorForm").addEventListener("submit", async function(e){
+
+    if (!this.reportValidity()) {
+        return;
+    }
+
     e.preventDefault();
+
     const visitor = {
 
         visitorName: document.getElementById("visitorName").value,
         mobile: document.getElementById("mobile").value,
         company: document.getElementById("company").value,
-        verifiedBy: document.getElementById("verifiedBy").value,
+        receiver: document.getElementById("Receiver").value,
         purpose: document.getElementById("purpose").value,
         date: document.getElementById("date").value,
         time: document.getElementById("time").value
