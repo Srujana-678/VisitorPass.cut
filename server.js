@@ -4,25 +4,42 @@ const cors = require("cors");
 
 const app = express();
 
-// Middleware
+
+// ==========================================
+// MIDDLEWARE
+// ==========================================
+
 app.use(cors());
 app.use(express.json());
 
-// MongoDB Connection
-mongoose.connect("mongodb://127.0.0.1:27017/VisitorPassDB")
-.then(() => {
-    console.log("✅ MongoDB Connected");
-})
-.catch((err) => {
-    console.error("❌ MongoDB Connection Error:", err);
-});
 
-// Schema
+// ==========================================
+// MONGODB CONNECTION
+// ==========================================
+
+mongoose.connect("mongodb://127.0.0.1:27017/VisitorPassDB")
+    .then(() => {
+        console.log("✅ MongoDB Connected");
+    })
+    .catch((err) => {
+        console.log("❌ MongoDB Connection Error:", err);
+    });
+
+
+// ==========================================
+// VISITOR SCHEMA
+// ==========================================
+
 const visitorSchema = new mongoose.Schema({
+
     visitorName: String,
+
     mobile: String,
+
     company: String,
+
     receiver: String,
+
     purpose: String,
 
     inchargeDC: {
@@ -34,33 +51,166 @@ const visitorSchema = new mongoose.Schema({
         type: String,
         default: "Pending"
     },
-    approvalStatus: {
-    type: String,
-    default: "Pending"
-},
 
-approvedBy: {
-    type: String,
-    default: ""
-},
+    approvedBy: {
+        type: String,
+        default: ""
+    },
 
-date: String,
-time: String
+    date: String,
+
+    time: String
+
 });
 
-// Model
+
+// Visitor Model
 const Visitor = mongoose.model("Visitor", visitorSchema);
 
-// Test Route
-app.get("/", (req, res) => {
-    res.send("Visitor Pass Backend Running");
+
+// ==========================================
+// USER SCHEMA
+// ==========================================
+
+const userSchema = new mongoose.Schema({
+
+    username: {
+        type: String,
+        required: true,
+        unique: true
+    },
+
+    password: {
+        type: String,
+        required: true
+    },
+
+    name: {
+        type: String,
+        required: true
+    },
+
+    role: {
+        type: String,
+        required: true
+    }
+
 });
 
-// Save Visitor API
-app.post("/saveVisitor", async (req, res) => {
 
-    console.log("REQUEST RECEIVED");
-    console.log(req.body);
+// User Model
+const User = mongoose.model("User", userSchema);
+
+
+// ==========================================
+// LOGIN API
+// ==========================================
+
+app.post("/login", async (req, res) => {
+
+    try {
+
+        const { username, password } = req.body;
+
+
+        // Check username and password
+        if (!username || !password) {
+
+            return res.json({
+
+                success: false,
+
+                message: "Please enter username and password."
+
+            });
+
+        }
+
+
+        // Find user by username
+        const user = await User.findOne({
+
+            username: username
+
+        });
+
+
+        // Username not found
+        if (!user) {
+
+            return res.json({
+
+                success: false,
+
+                message: "Invalid username or password."
+
+            });
+
+        }
+
+
+        // Check password
+        if (user.password !== password) {
+
+            return res.json({
+
+                success: false,
+
+                message: "Invalid username or password."
+
+            });
+
+        }
+
+
+        // Login successful
+        res.json({
+
+            success: true,
+
+            username: user.username,
+
+            name: user.name,
+
+            role: user.role
+
+        });
+
+    }
+
+    catch (err) {
+
+        console.log("❌ Login Error:", err);
+
+        res.status(500).json({
+
+            success: false,
+
+            message: "Server error during login."
+
+        });
+
+    }
+
+});
+
+
+// ==========================================
+// TEST API
+// ==========================================
+
+app.get("/", (req, res) => {
+
+    res.send("Visitor Pass Backend Running");
+
+});
+
+
+// ==========================================
+// SAVE VISITOR API
+// ==========================================
+
+app.post("/saveVisitor", async (req, res) => {
 
     try {
 
@@ -68,85 +218,37 @@ app.post("/saveVisitor", async (req, res) => {
 
         await visitor.save();
 
-        console.log("DATA SAVED");
 
         res.json({
+
             success: true,
-            message: "Saved Successfully"
-        });
 
-    } catch (err) {
+            message: "Visitor Saved Successfully"
 
-        console.log(err);
-
-        res.status(500).json({
-            success: false,
-            message: err.message
         });
 
     }
-});
 
-app.put("/approveVisitor/:id", async (req, res) => {
+    catch (err) {
 
-    try {
-
-        const visitor = await Visitor.findById(req.params.id);
-
-        if (!visitor.inchargeDC || visitor.inchargeDC === "") {
-            return res.json({
-                success: false,
-                message: "Please select Incharge-DC before approval."
-            });
-        }
-
-        visitor.approvalStatus = "Approved";
-
-        await Visitor.findByIdAndUpdate(
-            req.params.id,
-            {
-                approvalStatus: "Approved",
-                approvedBy: req.body.approvedBy
-            }
-        );
-
-    } catch (err) {
+        console.log("❌ Save Visitor Error:", err);
 
         res.status(500).json({
+
             success: false,
+
             message: err.message
+
         });
 
     }
 
 });
 
-app.put("/updateManager/:id", async (req, res) => {
 
-    try {
-
-        await Visitor.findByIdAndUpdate(
-            req.params.id,
-            {
-                inchargeDC: req.body.inchargeDC
-            }
-        );
-
-        res.json({
-            success: true,
-            message: "Manager Updated"
-        });
-
-    } catch (err) {
-
-        res.status(500).json({
-            success: false,
-            message: err.message
-        });
-
-    }
-
-});
+// ==========================================
+// GET VISITORS API
+// ==========================================
 
 app.get("/getVisitors", async (req, res) => {
 
@@ -156,20 +258,158 @@ app.get("/getVisitors", async (req, res) => {
 
         res.json(visitors);
 
-    } catch (err) {
+    }
+
+    catch (err) {
+
+        console.log("❌ Get Visitors Error:", err);
 
         res.status(500).json({
+
             success: false,
+
             message: err.message
+
         });
 
     }
 
 });
-// Start Server
-const PORT = 5000;
 
+
+// ==========================================
+// UPDATE INCHARGE-DC API
+// ==========================================
+
+app.put("/updateManager/:id", async (req, res) => {
+
+    try {
+
+        await Visitor.findByIdAndUpdate(
+
+            req.params.id,
+
+            {
+                inchargeDC: req.body.inchargeDC
+            }
+
+        );
+
+
+        res.json({
+
+            success: true,
+
+            message: "Manager Updated"
+
+        });
+
+    }
+
+    catch (err) {
+
+        console.log("❌ Update Manager Error:", err);
+
+        res.status(500).json({
+
+            success: false,
+
+            message: err.message
+
+        });
+
+    }
+
+});
+
+
+// ==========================================
+// APPROVE VISITOR API
+// ==========================================
+
+app.put("/approveVisitor/:id", async (req, res) => {
+
+    try {
+
+        const visitor = await Visitor.findById(req.params.id);
+
+
+        // Visitor not found
+        if (!visitor) {
+
+            return res.json({
+
+                success: false,
+
+                message: "Visitor not found"
+
+            });
+
+        }
+
+
+        // Check Incharge-DC
+        if (!visitor.inchargeDC || visitor.inchargeDC === "") {
+
+            return res.json({
+
+                success: false,
+
+                message: "Please select Incharge-DC before approval."
+
+            });
+
+        }
+
+
+        // Check approved person
+        if (!req.body.approvedBy) {
+
+            return res.json({
+
+                success: false,
+
+                message: "Please select approved person."
+
+            });
+
+        }
+        // Update visitor
+        const updatedVisitor = await Visitor.findByIdAndUpdate(
+            req.params.id,
+            {
+                approvalStatus: "Approved",
+                approvedBy: req.body.approvedBy
+            },
+            {
+                new: true
+
+            }
+
+        );
+
+        res.json({
+
+            success: true,
+
+            message: "Visitor Approved Successfully",
+
+            data: updatedVisitor
+
+        });
+
+    }
+
+    catch (err) {
+        console.log("❌ Approve Visitor Error:", err);
+        res.status(500).json({
+            success: false,
+            message: err.message
+        });
+    }
+});
+
+const PORT = 5000;
 app.listen(PORT, () => {
     console.log(`🚀 Server Running on http://localhost:${PORT}`);
 });
-
