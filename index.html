@@ -333,7 +333,7 @@
 <script>
 
 document.getElementById("showPassword").addEventListener("change",function(){
-
+    
     const password=document.getElementById("password");
 
     password.type=this.checked ? "text" : "password";
@@ -426,13 +426,31 @@ function login() {
 
         if (result.role === "initiator") {
 
-            window.location.href = "pages/dashboard.html";
+            window.location.href = "pages/newvisitor.html";
 
         }
 
-        else if (result.role === "incharge") {
+        else if (result.role === "receiver1") {
 
-            window.location.href = "pages/inchargeDC.html";
+            window.location.href = "pages/receiver1.html";
+
+        }
+
+        else if (result.role === "receiver2") {
+
+            window.location.href = "pages/receiver2.html";
+
+        }
+
+        else if (result.role === "incharge1") {
+
+            window.location.href = "pages/inchargeDC1.html";
+
+        }
+
+        else if (result.role === "incharge2") {
+
+            window.location.href = "pages/inchargeDC2.html";
 
         }
 
@@ -447,7 +465,6 @@ function login() {
             alert("Unknown user role.");
 
         }
-
     })
 
     .catch(error => {
