@@ -4,18 +4,11 @@ const cors = require("cors");
 
 const app = express();
 
-
-// ==========================================
 // MIDDLEWARE
-// ==========================================
-
 app.use(cors());
 app.use(express.json());
 
-
-// ==========================================
 // MONGODB CONNECTION
-// ==========================================
 
 mongoose.connect("mongodb://127.0.0.1:27017/VisitorPassDB")
     .then(() => {
@@ -25,21 +18,14 @@ mongoose.connect("mongodb://127.0.0.1:27017/VisitorPassDB")
         console.log("❌ MongoDB Connection Error:", err);
     });
 
-
-// ==========================================
 // VISITOR SCHEMA
-// ==========================================
 
 const visitorSchema = new mongoose.Schema({
 
     visitorName: String,
-
     mobile: String,
-
     company: String,
-
     receiver: String,
-
     purpose: String,
 
     inchargeDC: {
@@ -58,19 +44,15 @@ const visitorSchema = new mongoose.Schema({
     },
 
     date: String,
-
-    time: String
+    time: String,
+    outTime: String
 
 });
-
 
 // Visitor Model
 const Visitor = mongoose.model("Visitor", visitorSchema);
 
-
-// ==========================================
 // USER SCHEMA
-// ==========================================
 
 const userSchema = new mongoose.Schema({
 
@@ -101,10 +83,7 @@ const userSchema = new mongoose.Schema({
 // User Model
 const User = mongoose.model("User", userSchema);
 
-
-// ==========================================
 // LOGIN API
-// ==========================================
 
 app.post("/login", async (req, res) => {
 
@@ -117,15 +96,12 @@ app.post("/login", async (req, res) => {
         if (!username || !password) {
 
             return res.json({
-
                 success: false,
-
                 message: "Please enter username and password."
 
             });
 
         }
-
 
         // Find user by username
         const user = await User.findOne({
@@ -134,44 +110,34 @@ app.post("/login", async (req, res) => {
 
         });
 
-
         // Username not found
         if (!user) {
 
             return res.json({
-
                 success: false,
-
                 message: "Invalid username or password."
 
             });
 
         }
-
 
         // Check password
         if (user.password !== password) {
 
             return res.json({
-
                 success: false,
-
                 message: "Invalid username or password."
 
             });
 
         }
 
-
         // Login successful
         res.json({
 
             success: true,
-
             username: user.username,
-
             name: user.name,
-
             role: user.role
 
         });
@@ -183,9 +149,7 @@ app.post("/login", async (req, res) => {
         console.log("❌ Login Error:", err);
 
         res.status(500).json({
-
             success: false,
-
             message: "Server error during login."
 
         });
@@ -194,10 +158,7 @@ app.post("/login", async (req, res) => {
 
 });
 
-
-// ==========================================
 // TEST API
-// ==========================================
 
 app.get("/", (req, res) => {
 
@@ -205,26 +166,17 @@ app.get("/", (req, res) => {
 
 });
 
-
-// ==========================================
 // SAVE VISITOR API
-// ==========================================
 
 app.post("/saveVisitor", async (req, res) => {
 
     try {
 
         const visitor = new Visitor(req.body);
-
         await visitor.save();
-
-
         res.json({
-
             success: true,
-
             message: "Visitor Saved Successfully"
-
         });
 
     }
@@ -232,23 +184,16 @@ app.post("/saveVisitor", async (req, res) => {
     catch (err) {
 
         console.log("❌ Save Visitor Error:", err);
-
         res.status(500).json({
-
             success: false,
-
             message: err.message
-
         });
 
     }
 
 });
 
-
-// ==========================================
 // GET VISITORS API
-// ==========================================
 
 app.get("/getVisitors", async (req, res) => {
 
