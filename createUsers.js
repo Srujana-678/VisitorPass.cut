@@ -46,38 +46,38 @@ mongoose.connect("mongodb://127.0.0.1:27017/VisitorPassDB")
                 role: "initiator"
             },
 
-            // 2. INCHARGE
+            // 2. INCHARGE1
             {
                 username: "6051",
                 password: "6051@7873",
                 name: "Sidharth Panda",
-                role: "incharge"
+                role: "inchargeDC1"
             },
 
 
-            // 3. INCHARGE
+            // 3. INCHARGE2
             {
                 username: "5927",
                 password: "5927@7873",
                 name: "P.Naveen Reddy",
-                role: "incharge"
+                role: "inchargeDC2"
             },
 
 
-            // 4. INCHARGE
+            // 4. INCHARGE3
             {
                 username: "5765",
                 password: "5765@7873",
                 name: "A. Bharath Kumar Naik",
-                role: "incharge"
+                role: "inchargeDC3"
             },
 
-            // 5. INCHARGE
+            // 5. INCHARGE4
             {
                 username: "5441",
                 password: "5441@7873",
                 name: "T. Deepthi",
-                role: "incharge"
+                role: "inchargeDC4"
             },
 
             // 6. HEAD
