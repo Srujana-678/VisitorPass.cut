@@ -358,3 +358,42 @@ const PORT = 5000;
 app.listen(PORT, () => {
     console.log(`🚀 Server Running on http://localhost:${PORT}`);
 });
+
+app.put("/approveVisitor/:id", async (req, res) => {
+
+    try {
+
+        const { id } = req.params;
+        const { approvedBy } = req.body;
+
+        const visitor = await Visitor.findByIdAndUpdate(
+            id,
+            {
+                approvalStatus: "Approved",
+                approvedBy: approvedBy
+            },
+            { new: true }
+        );
+
+        if (!visitor) {
+            return res.status(404).json({
+                message: "Visitor not found"
+            });
+        }
+
+        res.json({
+            message: "Visitor approved successfully",
+            visitor: visitor
+        });
+
+    } catch (error) {
+
+        console.error("Approval error:", error);
+
+        res.status(500).json({
+            message: "Failed to approve visitor",
+            error: error.message
+        });
+    }
+
+});
