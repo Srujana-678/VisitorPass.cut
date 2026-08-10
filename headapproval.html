@@ -11,7 +11,274 @@
 
 <body>
 
+<div class="table-container"><!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Head-ITD Approval</title>
+
+    <link rel="stylesheet" href="../style.css">
+</head>
+
+<body>
+
 <div class="table-container">
+
+    <h1>Head-ITD Visitor Approval</h1>
+    <p id="loggedInUser" style="margin-top:-10px; margin-bottom:20px; color:#555; font-size:16px;">
+    </p>
+    <div class="previous-login">
+        <a href="previous.html">View previous Visitors</a>
+    </div>
+    <table id="visitorTable">
+
+        <thead>
+            <tr>
+                <th>S.No</th>
+                <th>Visitor Name</th>
+                <th>Mobile Number</th>
+                <th>Company</th>
+                <th>Receiver</th>
+                <th>Incharge-DC</th>
+                <th>Purpose</th>
+                <th>Date</th>
+                <th>Time In</th>
+                <th>Time Out</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        </tbody>
+
+    </table>
+        <div id="approvalModal" class="approval-modal">
+
+    <div class="approval-box">
+
+        <h2>Approve Visitor</h2>
+
+        <p>Are you sure to approve this visitor?</p>
+
+        <div class="approval-buttons">
+
+            <button onclick="closeModal()" class="cancelBtn">
+                No
+            </button>
+
+            <button onclick="approveVisitor()" class="confirmApproveBtn">
+                Yes
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+</div>
+<div id="pagination" class="pagination"></div>
+<script>
+
+let visitors = [];
+
+const loggedInName = sessionStorage.getItem("name");
+const loggedInRole = sessionStorage.getItem("role");
+
+document.getElementById("loggedInUser").innerHTML =
+    `Logged in as: <b>${loggedInName}</b> `;
+
+let currentPage = 1;
+let rowsPerPage = 10;
+
+
+let selectedVisitorId = "";
+
+loadVisitors();
+
+function loadVisitors(){
+
+    fetch("http://localhost:5000/getVisitors")
+    .then(res => res.json())
+    .then(data => {
+
+        visitors = data;
+            currentPage = 1;
+            displayVisitors(visitors);
+
+    })
+    .catch(err => console.log(err));
+
+}
+
+function displayVisitors(data){
+    
+    rowsPerPage = calculateRowsPerPage();
+
+    const tbody = document.querySelector("#visitorTable tbody");
+    tbody.innerHTML = "";
+
+    const start = (currentPage - 1) * rowsPerPage;
+    const end = start + rowsPerPage;
+
+    const paginatedData = data.slice(start, end);
+
+    paginatedData.forEach((visitor,index)=>{
+
+        tbody.innerHTML += `
+        <tr>
+
+            <td>${start + index + 1}</td>
+            <td>${visitor.visitorName}</td>
+            <td>${visitor.mobile}</td>
+            <td>${visitor.company}</td>
+            <td>${visitor.receiver || "-"}</td>
+            <td>${visitor.inchargeDC || "-"}</td>
+            <td>${visitor.purpose}</td>
+            <td>${visitor.date}</td>
+            <td>${visitor.time || "-"}</td>
+            <td>${visitor.outTime || "-"}</td>
+
+
+            <td>
+                ${
+                    visitor.approvalStatus === "Approved"
+                    ? '<span class="approved">Approved</span>'
+                    : '<span class="pending">Pending</span>'
+                }
+            </td>
+
+            <td>
+                ${
+                    visitor.approvalStatus === "Approved"
+                    ? "-"
+                    : `<button class="approveBtn" onclick="openModal('${visitor._id}')">
+                        Approve
+                      </button>`
+                }
+            </td>
+
+        </tr>
+        `;
+    });
+
+    setupPagination(data);
+}
+
+function openModal(id){
+
+    selectedVisitorId = id;
+
+    document.querySelectorAll('input[name="approvedBy"]').forEach(radio => {
+        radio.checked = false;
+    });
+
+    document.getElementById("approvalModal").style.display = "flex";
+}
+{
+
+    selectedVisitorId = id;
+
+        document.querySelectorAll('input[name="approvedBy"]').forEach(radio => {
+        radio.checked = false;
+    });
+    document.getElementById("approvalModal").style.display = "flex";
+
+}
+
+function closeModal(){
+
+    document.getElementById("approvalModal").style.display = "none";
+
+}
+
+function setupPagination(data){
+
+    const pagination = document.getElementById("pagination");
+    pagination.innerHTML = "";
+
+    const totalPages = Math.ceil(data.length / rowsPerPage);
+
+    // Previous
+    const prev = document.createElement("button");
+    prev.innerText = "Previous";
+    prev.disabled = currentPage === 1;
+
+    prev.onclick = () => {
+        currentPage--;
+        displayVisitors(data);
+    };
+
+    pagination.appendChild(prev);
+
+    // Page Numbers
+    for(let i = 1; i <= totalPages; i++){
+
+        const btn = document.createElement("button");
+        btn.innerText = i;
+
+        if(i === currentPage){
+            btn.classList.add("active");
+        }
+
+        btn.onclick = () => {
+            currentPage = i;
+            displayVisitors(data);
+        };
+
+        pagination.appendChild(btn);
+    }
+
+    // Next
+    const next = document.createElement("button");
+    next.innerText = "Next";
+    next.disabled = currentPage === totalPages || totalPages === 0;
+
+    next.onclick = () => {
+        currentPage++;
+        displayVisitors(data);
+    };
+
+    pagination.appendChild(next);
+}
+function calculateRowsPerPage() {
+
+    const table = document.getElementById("visitorTable");
+    const thead = table.querySelector("thead");
+
+    // Height available below the table header
+    const availableHeight =
+        window.innerHeight -
+        table.getBoundingClientRect().top -
+        90; // leave space for pagination
+
+    // Approximate height of one table row
+    const rowHeight = 48;
+
+    return Math.max(5, Math.floor((availableHeight - thead.offsetHeight) / rowHeight));
+}
+window.addEventListener("resize", () => {
+
+    rowsPerPage = calculateRowsPerPage();
+
+    const totalPages = Math.ceil(visitors.length / rowsPerPage);
+
+    if (currentPage > totalPages) {
+        currentPage = totalPages || 1;
+    }
+
+    displayVisitors(visitors);
+});
+
+</script>
+</script>
+</body>
+</html>
+</body>
+</html>
 
     <h1>Head-ITD Visitor Approval</h1>
 
