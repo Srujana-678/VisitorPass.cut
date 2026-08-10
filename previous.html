@@ -13,6 +13,8 @@
 <div class="table-container">
 
     <h1>Previous Visitor Records</h1>
+    <p id="loggedInUser" style="margin-top:-10px; margin-bottom:20px; color:#555; font-size:16px;">
+    </p>
 
 <div class="top-controls">
 
@@ -25,7 +27,7 @@
 
 </div>
 <div class="head-login">
-    <a href="headlogin.html">Login as Head-ITD</a>
+    <a href="newvisitor.html">Edit</a>
 </div>
 <table id="visitorTable">
 
@@ -37,7 +39,8 @@
                 <th>Visitor Name</th>
                 <th>Mobile Number</th>
                 <th>Company</th>
-                <th>Receiver/Incharge-DC</th>
+                <th>Receiver</th>
+                <th>Incharge-DC</th>
                 <th>Purpose</th>
                 <th>Date</th>
                 <th>Time</th>
@@ -86,10 +89,12 @@ function displayVisitors(data) {
             <td>${visitor.visitorName}</td>
             <td>${visitor.mobile}</td>
             <td>${visitor.company}</td>
-            <td>${visitor.receiver/incharge-dc}</td>
+             <td>${visitor.receiver || "-"}</td>
+            <td>${visitor.inchargeDC || "-"}</td>
             <td>${visitor.purpose}</td>
             <td>${visitor.date}</td>
-            <td>${visitor.time}</td>
+            <td>${visitor.time || "-"}</td>
+            <td>${visitor.outTime || "-"}</td>
         </tr>
         `;
     });
